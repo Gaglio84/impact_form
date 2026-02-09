@@ -10,9 +10,19 @@ export default function Homepage() {
     navigate('/selezione');
   };
 
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
   return (
     <div className="app">
-      <h1>Progetto Lab Impact</h1>
+      <div className="homepage-header">
+        <h1>Progetto Lab Impact</h1>
+        <button onClick={handleLoginClick} className="btn-login-header">
+          Area Data Entry →
+        </button>
+      </div>
+
       <h2>Benvenuto nella piattaforma di inserimento dati</h2>
       <p>
         Per rendere la tua esperienza nel <em>data entry</em> il più semplice e intuitiva possibile, <br />
@@ -21,6 +31,30 @@ export default function Homepage() {
         consultabili qui: <br /><a href={pdfUrl} target="_blank">Scheda Indicatori</a>.
       </p>
       <button onClick={handleButtonClick}>Iniziamo</button>
+
+      <style>{`
+        .homepage-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .btn-login-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: transform 0.3s;
+        }
+
+        .btn-login-header:hover {
+          transform: scale(1.05);
+        }
+      `}</style>
     </div>
   );
 }

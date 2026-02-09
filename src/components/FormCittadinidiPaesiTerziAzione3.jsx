@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Forms.css';
+import { supabase } from '../supabaseClient';
 
 function Button({ children, onClick, style, type = 'button', variant = 'primary' }) {
   const baseClass = 'form-button';
@@ -68,17 +69,80 @@ export default function FormCittadinidiPaesiTerziAzione3({ azione, sottoazione, 
     ));
   };
 
-  const handleSubmit = (e) => {
+  const sanitizeData = (data) => {
+    const dateFields = ['dataNascita', 'dataInizioSupporto', 'dataFineSupporto'];
+    const sanitized = { ...data };
+    dateFields.forEach(field => {
+      if (sanitized[field] === '') {
+        sanitized[field] = null;
+      }
+    });
+    return sanitized;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const datiCompleti = {
-      azione: azione,
-      sottoazione: sottoazione,
-      opzione: opzione,
+      azione: 3,
+      tipo: 'Cittadini',
       fondo: fondo,
       ...formData
     };
-    console.log('Dati inviati:', datiCompleti);
-    alert('Form inviato con successo!');
+    
+    try {
+      const { data, error } = await supabase
+        .from('azioni23')
+        .insert([sanitizeData(datiCompleti)]);
+      
+      if (error) {
+        console.error('Errore Supabase:', error);
+        alert('Errore nel salvataggio: ' + error.message);
+      } else {
+        alert('Form inviato con successo!');
+        // Reset form
+        setFormData({
+          cf: '',
+          nome: '',
+          cognome: '',
+          dataNascita: '',
+          genere: '',
+          nazionalita: '',
+          permessoSoggiorno: '',
+          note: '',
+          targetSpecifico1: '',
+          targetSpecifico2: '',
+          targetSpecifico3: '',
+          titoloStudio: '',
+          lavoroPaesOrigine: '',
+          telefono: '',
+          email: '',
+          dataInizioSupporto: '',
+          dataFineSupporto: '',
+          formazioneLinquistica: '',
+          orientamentoProfessionale: '',
+          educazioneCivica: '',
+          supportoInserimentoScolastico: '',
+          supportoFormazioneUniversitaria: '',
+          orientamentoFormazione: 'no',
+          serviziCaporalato: 'no',
+          serviziAlloggiativa: 'no',
+          attivitaSensibilizzazione: 'no',
+          supportoTutelaVolontaria: 'no',
+          supportoMinoriAutoritaGiudiziaria: 'no',
+          informazioniRicongiungimento: 'no',
+          supportoMobilita: 'no',
+          supportoSoggiornanteLungoPeriodo: 'no',
+          miglioramentoCompetenzeLinguistiche: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          utilitaFormazioneIntegrazione: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          presentazioneDomandaQualifiche: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          presentazioneDomandaSoggiornante: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          soddisfazione: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+        });
+      }
+    } catch (error) {
+      console.error('Errore:', error);
+      alert('Errore nel salvataggio: ' + error.message);
+    }
   };
 
   const nazionalita = ['Afghanistan', 'Albania', 'Algeria', 'Angola', 'Antigua e Barbuda', 'Arabia Saudita', 'Argentina', 'Armenia', 'Australia', 'Azerbaigian', 'Bahamas', 'Bahrein', 'Bangladesh', 'Barbados', 'Belize', 'Benin', 'Bhutan', 'Bielorussia', 'Bolivia', 'Bosnia-Erzegovina', 'Botswana', 'Brasile', 'Brunei Darussalam', 'Burkina Faso', 'Burundi', 'Cambogia', 'Camerun', 'Canada', 'Capo Verde', 'Ciad', 'Cile', 'Cina', 'Colombia', 'Comore', 'Congo', 'Corea del Nord', 'Corea del Sud', 'Costa d\'Avorio', 'Costa Rica', 'Cuba', 'Dominica', 'Ecuador', 'Egitto', 'El Salvador', 'Emirati Arabi Uniti', 'Eritrea', 'Eswatini', 'Etiopia', 'Federazione russa', 'Figi', 'Filippine', 'Gabon', 'Gambia', 'Georgia', 'Ghana', 'Giamaica', 'Giappone', 'Gibuti', 'Giordania', 'Grenada', 'Guatemala', 'Guinea', 'Guinea equatoriale', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'India', 'Indonesia', 'Iran', 'Iraq', 'Islanda', 'Isole Marshall', 'Isole Salomone', 'Israele', 'Kazakhstan', 'Kenya', 'Kirghizistan', 'Kiribati', 'Kosovo', 'Kuwait', 'Laos', 'Lesotho', 'Libano', 'Liberia', 'Libia', 'Macedonia del Nord', 'Madagascar', 'Malawi', 'Malaysia', 'Maldive', 'Mali', 'Marocco', 'Mauritania', 'Maurizio', 'Messico', 'Moldova', 'Mongolia', 'Montenegro', 'Mozambico', 'Myanmar/Birmania', 'Namibia', 'Nauru', 'Nepal', 'Nicaragua', 'Niger', 'Nigeria', 'Norvegia', 'Nuova Zelanda', 'Oman', 'Pakistan', 'Palau', 'Palestina', 'Panama', 'Papua Nuova Guinea', 'Paraguay', 'Perù', 'Qatar', 'Regno Unito', 'Repubblica Centrafricana', 'Repubblica Democratica del Congo', 'Repubblica Dominicana', 'Ruanda', 'Saint Kitts e Nevis', 'Saint Vincent e Grenadine', 'Samoa', 'Santa Lucia', 'Sao Tomé e Principe', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Siria', 'Somalia', 'Sri Lanka', 'Stati Federati di Micronesia', 'Stati Uniti d\'America', 'Sud Sudan', 'Sudafrica', 'Sudan', 'Suriname', 'Svizzera', 'Tagikistan', 'Taiwan', 'Tanzania', 'Thailandia', 'Timor Leste', 'Togo', 'Tonga', 'Trinidad e Tobago', 'Tunisia', 'Turchia', 'Turkmenistan', 'Tuvalu', 'Ucraina', 'Uganda', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'];

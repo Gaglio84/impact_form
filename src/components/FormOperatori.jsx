@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Forms.css';
+import { supabase } from '../supabaseClient';
 
 function Button({ children, onClick, style, type = 'button', variant = 'primary' }) {
   const baseClass = 'form-button';
@@ -46,16 +47,55 @@ export default function FormOperatori({ azione, sottoazione, opzione, onIndietro
   const today = new Date().toISOString().split('T')[0];
   const isProjectEnded = formData.dataFineSupporto && new Date(formData.dataFineSupporto) < new Date(today);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const datiCompleti = {
-      azione: azione,
-      sottoazione: sottoazione,
-      opzione: opzione,
+      tipo: 'Operatore',
       ...formData
     };
-    console.log('Dati inviati:', datiCompleti);
-    alert('Form inviato con successo!');
+    
+    try {
+      const { data, error } = await supabase
+        .from('azione1')
+        .insert([datiCompleti]);
+      
+      if (error) {
+        console.error('Errore Supabase:', error);
+        alert('Errore nel salvataggio: ' + error.message);
+      } else {
+        alert('Form inviato con successo!');
+        // Reset form
+        setFormData({
+          cf: '',
+          nome: '',
+          cognome: '',
+          dataNascita: '',
+          genere: '',
+          enteAppartenenza: '',
+          tipologiaEnte: '',
+          entePubblico: '',
+          telefono: '',
+          email: '',
+          dataInizioSupporto: '',
+          dataFineSupporto: '',
+          capacityBuildingPrefetture: '',
+          capacityBuildingEntiLocali: '',
+          formazioneScuole: '',
+          formazioneDiscriminazioni: '',
+          formazioneSocioSanitariaOS2: '',
+          formazioneTutelaVolontaria: '',
+          formazioneTutelaMinori: '',
+          utilitaFormazione: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          utilizzoCompetenze: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          esitoAttivita: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          soddisfazione: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+          utilitaSensibilizzazione: 'Risultato non ancora verificabile (supporto in corso) / Non applicabile',
+        });
+      }
+    } catch (error) {
+      console.error('Errore:', error);
+      alert('Errore nel salvataggio: ' + error.message);
+    }
   };
 
   const esito = ['Risultato non ancora verificabile (supporto in corso) / Non applicabile', 'Risultato positivo', 'Risultato negativo'];

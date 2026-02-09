@@ -146,7 +146,7 @@ export default function FormOperatori({ azione, sottoazione, opzione, onIndietro
           <div className="form-row">
             <div className="form-col">
               <div className="form-group">
-                <input type="date" name="dataNascita" placeholder="Data di nascita" value={formData.dataNascita} onChange={handleChange} className="form-input" />
+                <input type="date" name="dataNascita" placeholder="Data di nascita" value={formData.dataNascita} onChange={handleChange} className="form-input" required />
               </div>
             </div>
             <div className="form-col">

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import './Forms.css';
 
 export default function DashboardPage({ user, onLogout }) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('lista'); // 'lista' o 'crea'
   const [attività, setAttività] = useState([]);
   const [destinatari, setDestinatari] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [azioneSelezionata, setAzioneSelezionata] = useState(null);
 
   // Form per creare attività
   const [formData, setFormData] = useState({
@@ -159,9 +162,16 @@ export default function DashboardPage({ user, onLogout }) {
           <h1>Impact Dashboard</h1>
           <p>Benvenuto, {user.nome_organizzazione}</p>
         </div>
-        <button onClick={onLogout} className="btn-logout">
-          Logout
-        </button>
+        {!(tab === 'crea' && !azioneSelezionata) && (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={() => navigate('/data-entry')} className="btn-logout" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'white' }}>
+              ← Torna al Menu
+            </button>
+            <button onClick={onLogout} className="btn-logout">
+              Logout
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="dashboard-tabs">
@@ -173,7 +183,10 @@ export default function DashboardPage({ user, onLogout }) {
         </button>
         <button
           className={`tab-btn ${tab === 'crea' ? 'active' : ''}`}
-          onClick={() => setTab('crea')}
+          onClick={() => {
+            setTab('crea');
+            setAzioneSelezionata(null);
+          }}
         >
           Crea Attività
         </button>
@@ -253,45 +266,43 @@ export default function DashboardPage({ user, onLogout }) {
 
       {tab === 'crea' && (
         <div className="dashboard-content">
-          <div className="crea-attività-form">
-            <h2>Crea Nuova Attività Formativa</h2>
-            <form onSubmit={handleCreateAttività}>
-              <div className="form-group">
-                <label htmlFor="nome">Nome Attività *</label>
-                <input
-                  type="text"
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nome: e.target.value })
-                  }
-                  className="form-input"
-                  required
-                />
+          {!azioneSelezionata ? (
+            <div className="selection-step">
+              <h2>Seleziona l'Azione</h2>
+              <p>Scegli per quale Azione desideri creare la formazione</p>
+              <div className="options-grid">
+                {['Azione 1', 'Azione 2', 'Azione 3'].map((azione) => (
+                  <button
+                    key={azione}
+                    className="option-card"
+                    onClick={() => setAzioneSelezionata(azione)}
+                  >
+                    <span className="option-icon">📚</span>
+                    <span className="option-label">{azione}</span>
+                  </button>
+                ))}
               </div>
-
-              <div className="form-group">
-                <label htmlFor="descrizione">Descrizione</label>
-                <textarea
-                  id="descrizione"
-                  value={formData.descrizione}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descrizione: e.target.value })
-                  }
-                  className="form-input"
-                  rows="4"
-                />
+            </div>
+          ) : (
+            <div className="crea-attività-form">
+              <div className="form-header">
+                <button
+                  className="btn-back"
+                  onClick={() => setAzioneSelezionata(null)}
+                >
+                  ← Indietro
+                </button>
+                <h2>Crea Attività - {azioneSelezionata}</h2>
               </div>
-
-              <div className="form-row">
+              <form onSubmit={handleCreateAttività}>
                 <div className="form-group">
-                  <label htmlFor="data_inizio">Data Inizio *</label>
+                  <label htmlFor="nome">Nome Attività *</label>
                   <input
-                    type="date"
-                    id="data_inizio"
-                    value={formData.data_inizio}
+                    type="text"
+                    id="nome"
+                    value={formData.nome}
                     onChange={(e) =>
-                      setFormData({ ...formData, data_inizio: e.target.value })
+                      setFormData({ ...formData, nome: e.target.value })
                     }
                     className="form-input"
                     required
@@ -299,289 +310,55 @@ export default function DashboardPage({ user, onLogout }) {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="data_fine">Data Fine</label>
-                  <input
-                    type="date"
-                    id="data_fine"
-                    value={formData.data_fine}
+                  <label htmlFor="descrizione">Descrizione</label>
+                  <textarea
+                    id="descrizione"
+                    value={formData.descrizione}
                     onChange={(e) =>
-                      setFormData({ ...formData, data_fine: e.target.value })
+                      setFormData({ ...formData, descrizione: e.target.value })
                     }
                     className="form-input"
+                    rows="4"
                   />
                 </div>
-              </div>
 
-              <button type="submit" disabled={loading} className="btn-submit">
-                {loading ? 'Creazione in corso...' : 'Crea Attività'}
-              </button>
-            </form>
-          </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="data_inizio">Data Inizio *</label>
+                    <input
+                      type="date"
+                      id="data_inizio"
+                      value={formData.data_inizio}
+                      onChange={(e) =>
+                        setFormData({ ...formData, data_inizio: e.target.value })
+                      }
+                      className="form-input"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="data_fine">Data Fine</label>
+                    <input
+                      type="date"
+                      id="data_fine"
+                      value={formData.data_fine}
+                      onChange={(e) =>
+                        setFormData({ ...formData, data_fine: e.target.value })
+                      }
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading} className="btn-submit">
+                  {loading ? 'Creazione in corso...' : 'Crea Attività'}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       )}
-
-      <style>{`
-        .dashboard-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 30px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 20px;
-          border-radius: 10px;
-        }
-
-        .dashboard-header h1 {
-          margin: 0;
-          font-size: 28px;
-        }
-
-        .dashboard-header p {
-          margin: 5px 0 0 0;
-          font-size: 14px;
-          opacity: 0.9;
-        }
-
-        .btn-logout {
-          background-color: rgba(255, 255, 255, 0.2);
-          color: white;
-          border: 2px solid white;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-weight: bold;
-          transition: all 0.3s;
-        }
-
-        .btn-logout:hover {
-          background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .dashboard-tabs {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 20px;
-          border-bottom: 2px solid #ddd;
-        }
-
-        .tab-btn {
-          padding: 12px 20px;
-          background: none;
-          border: none;
-          font-size: 16px;
-          cursor: pointer;
-          color: #666;
-          border-bottom: 3px solid transparent;
-          transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-          color: #667eea;
-          border-bottom-color: #667eea;
-        }
-
-        .tab-btn:hover {
-          color: #667eea;
-        }
-
-        .dashboard-content {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 30px;
-        }
-
-        .attività-list {
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .attività-list h2 {
-          margin-top: 0;
-          color: #333;
-        }
-
-        .no-data {
-          color: #999;
-          text-align: center;
-          padding: 20px;
-        }
-
-        .attività-item {
-          padding: 15px;
-          border: 2px solid #eee;
-          border-radius: 5px;
-          margin-bottom: 10px;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-
-        .attività-item:hover {
-          border-color: #667eea;
-          background-color: #f9f9f9;
-        }
-
-        .attività-item.selected {
-          border-color: #667eea;
-          background-color: #f0f4ff;
-        }
-
-        .attività-info h3 {
-          margin: 0 0 5px 0;
-          color: #333;
-          font-size: 16px;
-        }
-
-        .attività-info p {
-          margin: 5px 0;
-          color: #666;
-          font-size: 13px;
-        }
-
-        .attività-details {
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-          max-height: 600px;
-          overflow-y: auto;
-        }
-
-        .attività-details h2 {
-          margin-top: 0;
-          color: #333;
-        }
-
-        .attività-desc {
-          color: #666;
-          margin: 10px 0;
-        }
-
-        .date-range {
-          background-color: #f5f5f5;
-          padding: 10px;
-          border-radius: 5px;
-          margin: 15px 0;
-          font-size: 14px;
-        }
-
-        .destinatari-list {
-          max-height: 300px;
-          overflow-y: auto;
-          border: 1px solid #eee;
-          padding: 10px;
-          border-radius: 5px;
-          margin: 15px 0;
-        }
-
-        .destinatario-checkbox {
-          display: flex;
-          align-items: center;
-          padding: 8px;
-          cursor: pointer;
-          user-select: none;
-        }
-
-        .destinatario-checkbox input {
-          margin-right: 10px;
-          width: 18px;
-          height: 18px;
-          cursor: pointer;
-        }
-
-        .destinatario-checkbox span {
-          font-size: 14px;
-          color: #333;
-        }
-
-        .destinatario-checkbox small {
-          margin-left: 5px;
-          color: #999;
-          font-size: 12px;
-        }
-
-        .attività-actions {
-          margin-top: 20px;
-          display: flex;
-          gap: 10px;
-        }
-
-        .btn-delete {
-          background-color: #dc3545;
-          color: white;
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          font-weight: bold;
-          transition: background-color 0.3s;
-        }
-
-        .btn-delete:hover {
-          background-color: #c82333;
-        }
-
-        .crea-attività-form {
-          background: white;
-          padding: 30px;
-          border-radius: 10px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-          grid-column: 1 / -1;
-          max-width: 600px;
-        }
-
-        .crea-attività-form h2 {
-          margin-top: 0;
-        }
-
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-        }
-
-        .btn-submit {
-          width: 100%;
-          padding: 12px;
-          background-color: #667eea;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          font-size: 16px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: background-color 0.3s;
-          margin-top: 20px;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-          background-color: #5568d3;
-        }
-
-        .btn-submit:disabled {
-          background-color: #999;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-          .dashboard-content {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-header {
-            flex-direction: column;
-            text-align: center;
-          }
-        }
-      `}</style>
     </div>
   );
 }

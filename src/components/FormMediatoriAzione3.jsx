@@ -228,7 +228,7 @@ export default function FormMediatoriAzione3({ azione, sottoazione, opzione, fon
             </div>
             <div className="form-col">
               <div className="form-group">
-                <textarea name="note" placeholder="Note (in caso di temporanea indisponibilità del permesso)" value={formData.note} onChange={handleChange} className="form-input" rows="1"></textarea>
+                <textarea name="note" placeholder="Note (in caso di temporanea indisponibilità del permesso)" value={formData.note} onChange={handleChange} className="form-textarea-small" rows="1"></textarea>
               </div>
             </div>
           </div>

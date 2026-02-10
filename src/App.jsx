@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import Homepage from './components/Homepage';
-import Selezione from './components/Selezione';
-import LoginPage from './components/LoginPage';
-import DashboardPage from './components/DashboardPage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import PublicHomepage from './components/PublicHomepage';
+import DestinatariManager from './components/DestinatariManager';
+import DataEntryLogin from './components/DataEntryLogin';
+import DataEntryMenu from './components/DataEntryMenu';
+import AttivitaFormativeManager from './components/AttivitaFormativeManager';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Controlla se c'è un utente salvato in sessionStorage
     const savedUser = sessionStorage.getItem('user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    setLoading(false);
   }, []);
 
   const handleLoginSuccess = (userData) => {
@@ -25,36 +27,35 @@ function App() {
     setUser(null);
   };
 
+  if (loading) {
+    return <div>Caricamento...</div>;
+  }
+
   return (
     <Router>
       <Routes>
-        {/* Se utente loggato, mostra dashboard */}
         {user ? (
           <>
-            <Route path="/dashboard" element={<DashboardPage user={user} onLogout={handleLogout} />} />
-            <Route path="/selezione" element={<Selezione />} />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/data-entry" element={<DataEntryMenu user={user} onLogout={handleLogout} />} />
+            <Route path="/selezione" element={<DestinatariManager user={user} />} />
+            <Route path="/dashboard" element={<AttivitaFormativeManager user={user} onLogout={handleLogout} />} />
+            <Route path="/" element={<Navigate to="/data-entry" replace />} />
+            <Route path="/login" element={<Navigate to="/data-entry" replace />} />
+            <Route path="*" element={<Navigate to="/data-entry" replace />} />
           </>
         ) : (
           <>
-            {/* Se non loggato, mostra login o homepage pubblica */}
-            <Route path="/" element={<Homepage />} />
-            <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
-            <Route path="/selezione" element={<Selezione />} />
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="/" element={<PublicHomepage />} />
+            <Route path="/login" element={<DataEntryLogin onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/selezione" element={<Navigate to="/login" replace />} />
+            <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+            <Route path="/data-entry" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}
       </Routes>
     </Router>
   );
-}
-
-function Navigate({ to }) {
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate(to);
-  }, [navigate, to]);
-  return null;
 }
 
 export default App;

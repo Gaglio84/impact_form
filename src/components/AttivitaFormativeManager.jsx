@@ -115,8 +115,9 @@ export default function DashboardPage({ user, onLogout }) {
     await caricaDestinatari(att.azione);
 
     try {
+      const tableName = getDestinatariTable(att.azione);
       const { data, error } = await supabase
-        .from('destinatari_attività')
+        .from(tableName)
         .select('destinatario_id')
         .eq('attività_id', att.id);
 
@@ -132,13 +133,14 @@ export default function DashboardPage({ user, onLogout }) {
 
   const handleToggleDestinatario = async (destinatarioId) => {
     const newSet = new Set(selectedDestinatari);
+    const tableName = getDestinatariTable(selectedAttività.azione);
 
     if (newSet.has(destinatarioId)) {
       // Rimuovi associazione
       newSet.delete(destinatarioId);
       try {
         await supabase
-          .from('destinatari_attività')
+          .from(tableName)
           .delete()
           .eq('attività_id', selectedAttività.id)
           .eq('destinatario_id', destinatarioId);
@@ -149,7 +151,7 @@ export default function DashboardPage({ user, onLogout }) {
       // Aggiungi associazione
       newSet.add(destinatarioId);
       try {
-        await supabase.from('destinatari_attività').insert([
+        await supabase.from(tableName).insert([
           {
             attività_id: selectedAttività.id,
             destinatario_id: destinatarioId,
@@ -191,6 +193,11 @@ export default function DashboardPage({ user, onLogout }) {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  // Determina la tabella in base all'azione
+  const getDestinatariTable = (azione) => {
+    return azione === 1 ? 'destinatari_attività_azione1' : 'destinatari_attività_azione23';
+  };
 
   return (
     <div className="dashboard-container">

@@ -26,7 +26,7 @@ body {
    ============================================ */
 
 :root {
-  --primary-gradient: linear-gradient(135deg, #6d98af 0%, #c6dcec 100%);
+  --primary-gradient: #90cae0;
   --primary-color: #90cae0;
   --secondary-color: #7ca7c2;
   --success-color: #7dd8c8;
@@ -368,7 +368,7 @@ body {
 }
 
 .option-card {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f7fa;
   padding: 25px;
   border-radius: 10px;
   cursor: pointer;

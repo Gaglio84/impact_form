@@ -32,6 +32,7 @@ export default function DashboardPage({ user, onLogout }) {
   
   // Modale
   const [showModal, setShowModal] = useState(false);
+  const [searchDestinatari, setSearchDestinatari] = useState('');
 
   // Carica attività dell'utente al montaggio
   useEffect(() => {
@@ -452,7 +453,6 @@ export default function DashboardPage({ user, onLogout }) {
         </div>
       )}
 
-      {/* Modale Destinatari */}
       {showModal && selectedAttività && associazioniLoaded && (
         <div style={{
           position: 'fixed',
@@ -484,7 +484,10 @@ export default function DashboardPage({ user, onLogout }) {
             }}>
               <h2 style={{ margin: 0 }}>{selectedAttività.tipo_attivita}</h2>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setSearchDestinatari('');
+                }}
                 style={{
                   fontSize: '24px',
                   border: 'none',
@@ -518,23 +521,40 @@ export default function DashboardPage({ user, onLogout }) {
               padding: '20px'
             }}>
               <h3>Associa Destinatari</h3>
+              
+              {/* Ricerca destinatari */}
+              <input
+                type="text"
+                placeholder="Cerca per nome o cognome..."
+                value={searchDestinatari}
+                onChange={(e) => setSearchDestinatari(e.target.value)}
+                className="form-input"
+                style={{ width: '100%', padding: '10px', marginBottom: '15px', boxSizing: 'border-box' }}
+              />
+              
               <div className="destinatari-list">
-                {destinatari.length === 0 ? (
-                  <p>Nessun destinatario disponibile</p>
+                {destinatari.filter(dest =>
+                  `${dest.cognome} ${dest.nome}`.toLowerCase().includes(searchDestinatari.toLowerCase())
+                ).length === 0 ? (
+                  <p>Nessun destinatario trovato</p>
                 ) : (
-                  destinatari.map((dest) => (
-                    <label key={dest.id} className="destinatario-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedDestinatari.has(dest.id)}
-                        onChange={() => handleToggleDestinatario(dest.id)}
-                      />
-                      <span>
-                        {dest.cognome} {dest.nome}
-                        {dest.email && <small>({dest.email})</small>}
-                      </span>
-                    </label>
-                  ))
+                  destinatari
+                    .filter(dest =>
+                      `${dest.cognome} ${dest.nome}`.toLowerCase().includes(searchDestinatari.toLowerCase())
+                    )
+                    .map((dest) => (
+                      <label key={dest.id} className="destinatario-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={selectedDestinatari.has(dest.id)}
+                          onChange={() => handleToggleDestinatario(dest.id)}
+                        />
+                        <span>
+                          {dest.cognome} {dest.nome}
+                          {dest.email && <small>({dest.email})</small>}
+                        </span>
+                      </label>
+                    ))
                 )}
               </div>
             </div>
@@ -554,7 +574,10 @@ export default function DashboardPage({ user, onLogout }) {
                 Elimina Attività
               </button>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setSearchDestinatari('');
+                }}
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#667eea',

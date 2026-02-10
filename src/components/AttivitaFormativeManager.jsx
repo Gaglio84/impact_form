@@ -24,6 +24,14 @@ export default function DashboardPage({ user, onLogout }) {
   const [selectedAttività, setSelectedAttività] = useState(null);
   const [selectedDestinatari, setSelectedDestinatari] = useState(new Set());
   const [associazioniLoaded, setAssociazioniLoaded] = useState(false);
+  
+  // Paginazione e ricerca
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  // Modale
+  const [showModal, setShowModal] = useState(false);
 
   // Carica attività dell'utente al montaggio
   useEffect(() => {
@@ -162,11 +170,26 @@ export default function DashboardPage({ user, onLogout }) {
       alert('Attività eliminata');
       caricaAttività();
       setSelectedAttività(null);
+      setShowModal(false);
     } catch (err) {
       alert('Errore eliminazione: ' + err.message);
       console.error(err);
     }
   };
+
+  // Filtra attività per ricerca e calcola paginazione
+  const filteredAttività = attività.filter(att =>
+    att.tipo_attivita.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const totalPages = Math.ceil(filteredAttività.length / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedAttività = filteredAttività.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+  // Reset pagina quando cambia ricerca
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   return (
     <div className="dashboard-container">
@@ -209,71 +232,67 @@ export default function DashboardPage({ user, onLogout }) {
         <div className="dashboard-content">
           <div className="attività-list">
             <h2>Attività Formative</h2>
-            {attività.length === 0 ? (
-              <p className="no-data">Nessuna attività creata</p>
+            
+            {/* Campo di ricerca */}
+            <div style={{ marginBottom: '15px' }}>
+              <input
+                type="text"
+                placeholder="Cerca per tipo di attività..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-input"
+                style={{ width: '100%', padding: '10px' }}
+              />
+            </div>
+
+            {filteredAttività.length === 0 ? (
+              <p className="no-data">Nessuna attività trovata</p>
             ) : (
-              attività.map((att) => (
-                <div
-                  key={att.id}
-                  className={`attività-item ${
-                    selectedAttività?.id === att.id ? 'selected' : ''
-                  }`}
-                  onClick={() => handleSelectAttività(att)}
-                >
-                  <div className="attività-info">
-                    <h3>{att.tipo_attivita}</h3>
-                    <p>Durata: {att.durata_ore} ore | Partecipanti: {att.numero_partecipanti}</p>
-                    <small>
-                      {att.data_inizio} {att.data_fine && `- ${att.data_fine}`}
-                    </small>
+              <>
+                {paginatedAttività.map((att) => (
+                  <div
+                    key={att.id}
+                    className={`attività-item ${
+                      selectedAttività?.id === att.id ? 'selected' : ''
+                    }`}
+                    onClick={() => {
+                      handleSelectAttività(att);
+                      setShowModal(true);
+                    }}
+                  >
+                    <div className="attività-info">
+                      <h3>{att.tipo_attivita}</h3>
+                      <p>Durata: {att.durata_ore} ore | Partecipanti: {att.numero_partecipanti}</p>
+                      <small>
+                        {att.data_inizio} {att.data_fine && `- ${att.data_fine}`}
+                      </small>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+                
+                {/* Paginazione */}
+                {totalPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '10px 0' }}>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      style={{ padding: '8px 12px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                    >
+                      ← Precedente
+                    </button>
+                    <span>Pagina {currentPage} di {totalPages}</span>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      style={{ padding: '8px 12px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                    >
+                      Successiva →
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
-
-          {selectedAttività && associazioniLoaded && (
-            <div className="attività-details">
-              <h2>{selectedAttività.tipo_attivita}</h2>
-              <p className="attività-desc">Durata: {selectedAttività.durata_ore} ore | Partecipanti: {selectedAttività.numero_partecipanti}</p>
-              <div className="date-range">
-                <strong>Dal {selectedAttività.data_inizio}</strong>
-                {selectedAttività.data_fine && (
-                  <strong> al {selectedAttività.data_fine}</strong>
-                )}
-              </div>
-
-              <h3>Associa Destinatari</h3>
-              <div className="destinatari-list">
-                {destinatari.length === 0 ? (
-                  <p>Nessun destinatario disponibile</p>
-                ) : (
-                  destinatari.map((dest) => (
-                    <label key={dest.id} className="destinatario-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedDestinatari.has(dest.id)}
-                        onChange={() => handleToggleDestinatario(dest.id)}
-                      />
-                      <span>
-                        {dest.cognome} {dest.nome}
-                        {dest.email && <small>({dest.email})</small>}
-                      </span>
-                    </label>
-                  ))
-                )}
-              </div>
-
-              <div className="attività-actions">
-                <button
-                  onClick={() => handleDeleteAttività(selectedAttività.id)}
-                  className="btn-delete"
-                >
-                  Elimina Attività
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -430,6 +449,125 @@ export default function DashboardPage({ user, onLogout }) {
               </form>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modale Destinatari */}
+      {showModal && selectedAttività && associazioniLoaded && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+          }}>
+            {/* Header modale */}
+            <div style={{
+              padding: '20px',
+              borderBottom: '1px solid #ddd',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h2 style={{ margin: 0 }}>{selectedAttività.tipo_attivita}</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  fontSize: '24px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Info attività */}
+            <div style={{ padding: '15px 20px', backgroundColor: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
+              <p style={{ margin: '5px 0' }}>
+                <strong>Durata:</strong> {selectedAttività.durata_ore} ore
+              </p>
+              <p style={{ margin: '5px 0' }}>
+                <strong>Partecipanti:</strong> {selectedAttività.numero_partecipanti}
+              </p>
+              <p style={{ margin: '5px 0' }}>
+                <strong>Dal:</strong> {selectedAttività.data_inizio}
+                {selectedAttività.data_fine && ` al ${selectedAttività.data_fine}`}
+              </p>
+            </div>
+
+            {/* Destinatari scrollabile */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              padding: '20px'
+            }}>
+              <h3>Associa Destinatari</h3>
+              <div className="destinatari-list">
+                {destinatari.length === 0 ? (
+                  <p>Nessun destinatario disponibile</p>
+                ) : (
+                  destinatari.map((dest) => (
+                    <label key={dest.id} className="destinatario-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedDestinatari.has(dest.id)}
+                        onChange={() => handleToggleDestinatario(dest.id)}
+                      />
+                      <span>
+                        {dest.cognome} {dest.nome}
+                        {dest.email && <small>({dest.email})</small>}
+                      </span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Footer modale */}
+            <div style={{
+              padding: '15px 20px',
+              borderTop: '1px solid #ddd',
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => handleDeleteAttività(selectedAttività.id)}
+                className="btn-delete"
+              >
+                Elimina Attività
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#667eea',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Chiudi
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

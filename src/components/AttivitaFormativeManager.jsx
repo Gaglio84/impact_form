@@ -46,12 +46,15 @@ export default function DashboardPage({ user, onLogout }) {
     }
   };
 
-  const caricaDestinatari = async (azione) => {
+  const caricaDestinatari = async (azioneStr) => {
     try {
+      // Estrai il numero da "Azione X" (es: "Azione 1" -> 1)
+      const azioneNum = parseInt(azioneStr.split(' ')[1]);
+      
       const { data, error } = await supabase
         .from('azioni23')
         .select('id, nome, cognome, email, azione')
-        .eq('azione', azione)
+        .eq('azione', azioneNum)
         .order('cognome', { ascending: true });
 
       if (error) throw error;
@@ -66,12 +69,15 @@ export default function DashboardPage({ user, onLogout }) {
     setLoading(true);
 
     try {
+      // Estrai il numero da "Azione X"
+      const azioneNum = parseInt(azioneSelezionata.split(' ')[1]);
+      
       const { data, error } = await supabase
         .from('attività_formative')
         .insert([
           {
             ...formData,
-            azione: azioneSelezionata,
+            azione: azioneNum,
             user_id: user.id,
           },
         ])

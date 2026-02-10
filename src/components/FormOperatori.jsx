@@ -101,7 +101,7 @@ export default function FormOperatori({ azione, sottoazione, opzione, onIndietro
   const esito = ['Risultato non ancora verificabile (supporto in corso) / Non applicabile', 'Risultato positivo', 'Risultato negativo'];
 
   return (
-    <div className="app">
+    <div style={{ width: '100%', padding: '20px 3em', boxSizing: 'border-box', backgroundColor: 'white' }}>
       <h1>Scheda Operatori</h1>
       <p><strong> {azione}</strong></p>
       <p><strong> {sottoazione}</strong></p>

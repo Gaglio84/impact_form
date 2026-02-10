@@ -6,7 +6,7 @@
 .form-container {
   display: block;
   margin-top: 2em;
-  border-top: 2px solid #333;
+  border-top: 2px solid #222222;
   padding-top: 2em;
   width: 100%;
   max-width: none;
@@ -16,6 +16,7 @@
   overflow-x: hidden;
   padding-left: 3em;
   padding-right: 3em;
+  text-align: center;
 }
 
 .form-container-small {
@@ -56,6 +57,7 @@
   margin-bottom: 0;
   display: flex;
   flex-direction: column;
+  
 }
 
 /* Form Row - Contenitore per due colonne */
@@ -100,7 +102,7 @@
 .form-textarea {
   display: block;
   width: 100%;
-  padding: 0;
+  padding: 0 0.75em;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1.05em;
@@ -114,8 +116,6 @@
   appearance: none;
   background-color: white;
   color: #333;
-  padding: 0 0.75em;
-  text-indent: 0;
 }
 
 input[type="date"],
@@ -149,30 +149,11 @@ input[type="text"] {
   color: #666;
 }
 
-.form-select,
+
 .form-select option {
   color: #666;
 }
 
-.form-section {
-  padding-bottom: 2.5em;
-  margin-bottom: 2.5em;
-  border-bottom: 2px solid #333;
-}
-
-.form-section:last-of-type {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 2em;
-}
-
-.form-section-title {
-  font-size: 1.3em;
-  font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 1.8em;
-  color: var(--color-text, #333);
-}
 
 .form-input:focus,
 .form-select:focus,

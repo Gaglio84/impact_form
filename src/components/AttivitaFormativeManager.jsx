@@ -30,9 +30,12 @@ export default function DashboardPage({ user, onLogout }) {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   
-  // Modale
-  const [showModal, setShowModal] = useState(false);
+  // Ricerca destinatari
   const [searchDestinatari, setSearchDestinatari] = useState('');
+  
+  // Modalità view a destra
+  const [rightPanelMode, setRightPanelMode] = useState(null); // null, 'destinatari', 'modifica'
+  const [editingAttivitaTemp, setEditingAttivitaTemp] = useState(null);
 
   // Carica attività dell'utente al montaggio
   useEffect(() => {
@@ -55,15 +58,15 @@ export default function DashboardPage({ user, onLogout }) {
     }
   };
 
-  const caricaDestinatari = async (azioneStr) => {
+  const caricaDestinatari = async (azioneNum) => {
     try {
-      // Estrai il numero da "Azione X" (es: "Azione 1" -> 1)
-      const azioneNum = parseInt(azioneStr.split(' ')[1]);
+      // Accetta direttamente il numero dell'azione (1, 2, o 3)
+      const tableQuery = azioneNum === 1 ? 'azioni1' : 'azioni23';
       
       const { data, error } = await supabase
-        .from('azioni23')
+        .from(tableQuery)
         .select('id, nome, cognome, email, azione')
-        .eq('azione', azioneNum)
+        .eq('azione', Number(azioneNum))
         .order('cognome', { ascending: true });
 
       if (error) throw error;
@@ -78,9 +81,9 @@ export default function DashboardPage({ user, onLogout }) {
     setLoading(true);
 
     try {
-      // Estrai il numero da "Azione X"
       const azioneNum = parseInt(azioneSelezionata.split(' ')[1]);
       
+      // CREATE
       const { data, error } = await supabase
         .from('attività_formative')
         .insert([
@@ -93,14 +96,14 @@ export default function DashboardPage({ user, onLogout }) {
         .select();
 
       if (error) throw error;
-
       alert('Attività creata con successo!');
+
       setFormData({ data_inizio: '', data_fine: '', tipo_attivita: '', durata_ore: '', numero_partecipanti: '' });
       caricaAttività();
       setAzioneSelezionata(null);
       setTab('lista');
     } catch (err) {
-      alert('Errore nella creazione: ' + err.message);
+      alert('Errore: ' + err.message);
       console.error(err);
     }
 
@@ -173,7 +176,6 @@ export default function DashboardPage({ user, onLogout }) {
       alert('Attività eliminata');
       caricaAttività();
       setSelectedAttività(null);
-      setShowModal(false);
     } catch (err) {
       alert('Errore eliminazione: ' + err.message);
       console.error(err);
@@ -237,19 +239,21 @@ export default function DashboardPage({ user, onLogout }) {
       </div>
 
       {tab === 'lista' && (
-        <div className="dashboard-content">
-          <div className="attività-list">
-            <h2>Attività Formative</h2>
+        <div className="dashboard-content" style={{ display: 'flex', gap: '20px' }}>
+          
+          {/* LEFT PANEL - Activity List (Compact) */}
+          <div className="attività-list" style={{ flex: '0 0 30%', overflowY: 'auto', maxHeight: '80vh' }}>
+            <h2>Le mie Attività</h2>
             
-            {/* Campo di ricerca */}
+            {/* Search Input */}
             <div style={{ marginBottom: '15px' }}>
               <input
                 type="text"
-                placeholder="Cerca per tipo di attività..."
+                placeholder="Cerca..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="form-input"
-                style={{ width: '100%', padding: '10px' }}
+                style={{ width: '100%', padding: '8px', fontSize: '12px' }}
               />
             </div>
 
@@ -260,46 +264,388 @@ export default function DashboardPage({ user, onLogout }) {
                 {paginatedAttività.map((att) => (
                   <div
                     key={att.id}
-                    className={`attività-item ${
-                      selectedAttività?.id === att.id ? 'selected' : ''
-                    }`}
-                    onClick={() => {
-                      handleSelectAttività(att);
-                      setShowModal(true);
+                    className={`attività-item ${selectedAttività?.id === att.id ? 'selected' : ''}`}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      padding: '10px',
+                      marginBottom: '8px',
+                      gap: '8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      backgroundColor: selectedAttività?.id === att.id ? '#f0f0f0' : 'white'
                     }}
                   >
-                    <div className="attività-info">
-                      <h3>{att.tipo_attivita}</h3>
-                      <p>Durata: {att.durata_ore} ore | Partecipanti: {att.numero_partecipanti}</p>
-                      <small>
-                        {att.data_inizio} {att.data_fine && `- ${att.data_fine}`}
-                      </small>
+                    {/* Activity Info */}
+                    <div
+                      className="attività-info"
+                      style={{ flex: 1, cursor: 'pointer' }}
+                      onClick={() => handleSelectAttività(att)}
+                    >
+                      <h4 style={{ margin: '0 0 3px 0', fontSize: '13px' }}>{att.tipo_attivita}</h4>
+                      <small style={{ color: '#666', fontSize: '11px' }}>Durata: {att.durata_ore}h | {att.data_inizio}</small>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectAttività(att);
+                          setRightPanelMode('destinatari');
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '4px 8px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontSize: '11px'
+                        }}
+                      >
+                        Associa
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingAttivitaTemp(JSON.parse(JSON.stringify(att)));
+                          setRightPanelMode('modifica');
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '4px 8px',
+                          backgroundColor: '#5a8fa5',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontSize: '11px'
+                        }}
+                      >
+                        Modifica
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAttività(att.id);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '4px 8px',
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                          fontSize: '11px'
+                        }}
+                      >
+                        Elimina
+                      </button>
                     </div>
                   </div>
                 ))}
                 
-                {/* Paginazione */}
+                {/* Pagination */}
                 {totalPages > 1 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '10px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', gap: '5px' }}>
                     <button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      style={{ padding: '8px 12px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                      style={{ flex: 1, padding: '6px', fontSize: '11px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
                     >
-                      ← Precedente
+                      ←
                     </button>
-                    <span>Pagina {currentPage} di {totalPages}</span>
+                    <small>{currentPage}/{totalPages}</small>
                     <button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      style={{ padding: '8px 12px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                      style={{ flex: 1, padding: '6px', fontSize: '11px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
                     >
-                      Successiva →
+                      →
                     </button>
                   </div>
                 )}
               </>
             )}
+          </div>
+
+          {/* RIGHT PANEL - Associa Destinatari */}
+          {rightPanelMode === 'destinatari' && selectedAttività && associazioniLoaded && (
+            <div className="attività-details" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <h3>{selectedAttività.tipo_attivita}</h3>
+              <small style={{ color: '#666', marginBottom: '15px' }}>Durata: {selectedAttività.durata_ore}h | Partecipanti: {selectedAttività.numero_partecipanti}</small>
+              
+              <h4>Associa Destinatari</h4>
+              
+              {/* Search Input */}
+              <input
+                type="text"
+                placeholder="Cerca per nome o cognome..."
+                value={searchDestinatari}
+                onChange={(e) => setSearchDestinatari(e.target.value)}
+                className="form-input"
+                style={{ width: '100%', padding: '8px', marginBottom: '12px', boxSizing: 'border-box', fontSize: '12px' }}
+              />
+              
+              <div className="destinatari-list" style={{ maxHeight: '500px', overflow: 'auto', marginBottom: '15px', flex: 1, border: '1px solid #ddd', padding: '10px', borderRadius: '4px' }}>
+                {destinatari.filter(dest =>
+                  `${dest.cognome} ${dest.nome}`.toLowerCase().includes(searchDestinatari.toLowerCase())
+                ).length === 0 ? (
+                  <p style={{ fontSize: '12px' }}>Nessun destinatario trovato</p>
+                ) : (
+                  destinatari
+                    .filter(dest =>
+                      `${dest.cognome} ${dest.nome}`.toLowerCase().includes(searchDestinatari.toLowerCase())
+                    )
+                    .map((dest) => (
+                      <label key={dest.id} className="destinatario-checkbox" style={{ fontSize: '12px', display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedDestinatari.has(dest.id)}
+                          onChange={() => handleToggleDestinatario(dest.id)}
+                        />
+                        <span>{dest.cognome} {dest.nome}</span>
+                      </label>
+                    ))
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => {
+                    alert('Destinatari associati con successo!');
+                    setSelectedDestinatari(new Set());
+                    setSearchDestinatari('');
+                    setRightPanelMode(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '12px'
+                  }}
+                >
+                  Salva Associazioni
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedDestinatari(new Set());
+                    setSearchDestinatari('');
+                    setRightPanelMode(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '12px'
+                  }}
+                >
+                  Chiudi
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL - Modifica Attività (FUORI dal flex container) */}
+      {rightPanelMode === 'modifica' && editingAttivitaTemp && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 99999
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Header */}
+            <div style={{ padding: '20px', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <h2 style={{ margin: 0 }}>Modifica Attività</h2>
+              <button
+                onClick={() => {
+                  setRightPanelMode(null);
+                  setEditingAttivitaTemp(null);
+                }}
+                style={{ fontSize: '24px', border: 'none', background: 'none', cursor: 'pointer', color: '#666' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content - scrollabile solo il contenuto, NON i bottoni */}
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+              {/* Tipo Attività */}
+              <div className="form-group" style={{ marginBottom: '15px' }}>
+                <label style={{ fontSize: '12px' }}>Tipo di Attività</label>
+                <select
+                  value={editingAttivitaTemp.tipo_attivita || ''}
+                  onChange={(e) => setEditingAttivitaTemp({ ...editingAttivitaTemp, tipo_attivita: e.target.value })}
+                  style={{ 
+                    fontSize: '12px', 
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    height: 'auto',
+                    appearance: 'auto',
+                    WebkitAppearance: 'auto',
+                    backgroundColor: 'white',
+                    color: '#333'
+                  }}
+                >
+                  <option value="">-- Seleziona --</option>
+                  {(Number(editingAttivitaTemp.azione) === 1 || !editingAttivitaTemp.azione) && (
+                    <>
+                      <option value="Attivazione e rafforzamento di reti di governance">Attivazione e rafforzamento di reti di governance e coordinamento a livello territoriale</option>
+                      <option value="Creazione di Tavoli territoriali">Creazione di Tavoli territoriali</option>
+                      <option value="Promozione di partenariati">Promozione di partenariati e/o azioni interregionali</option>
+                      <option value="Capacity building operatori">Interventi di capacity building/enforcement rivolti agli operatori</option>
+                      <option value="Qualificazione servizi">Interventi per la qualificazione e il potenziamento dei servizi per l'impiego</option>
+                      <option value="Mediatore interculturale">Interventi per il coinvolgimento e/o la qualificazione del mediatore interculturale</option>
+                      <option value="Ricerca-azione">Interventi di ricerca-azione</option>
+                    </>
+                  )}
+                  {(Number(editingAttivitaTemp.azione) === 2 || !editingAttivitaTemp.azione) && (
+                    <>
+                      <option value="Inclusione e integrazione stranieri">Interventi di inclusione e integrazione di giovani e adulti stranieri nei percorsi formativi e nelle transizioni tra formazione e inserimento lavorativo</option>
+                      <option value="Percorsi formativi non professionalizzanti">Promozione di percorsi formativi "non professionalizzanti"</option>
+                      <option value="Competenze linguistiche">Interventi dedicati all'acquisizione delle competenze linguistiche</option>
+                      <option value="Alfabetizzazione digitale">Attività per il miglioramento dell'alfabetizzazione digitale per la promozione dell'autonomia</option>
+                      <option value="Valorizzazione percorsi">Valorizzazione dei percorsi pregressi</option>
+                      <option value="Reti di sostegno territoriale">Attivazione di reti di sostegno territoriale</option>
+                      <option value="Contrasto povertà educativa">Azioni di contrasto alla povertà educativa</option>
+                      <option value="Contrasto disagio abitativo">Attività finalizzate al contrasto al disagio abitativo dei CPT</option>
+                      <option value="Orientamento lavoro">Interventi di orientamento al lavoro e ai servizi per l'impiego</option>
+                      <option value="Autoimprenditorialità">Attività rivolte a favorire l'autoimprenditorialità</option>
+                      <option value="Matching domanda offerta">Attività rivolte a favorire il matching tra domanda e offerta di lavoro</option>
+                      <option value="Conciliazione vita-lavoro">Misure di conciliazione vita-lavoro</option>
+                      <option value="Centri multiservizi">Attivazione e/o sostegno di centri multiservizi</option>
+                      <option value="Centri per l'Impiego">Sviluppo di azioni sinergiche con Centri per l'Impiego</option>
+                      <option value="Outreach">Interventi di outreach</option>
+                      <option value="Mediatori interculturali">Attivazione e/o potenziamento della presenza di mediatori interculturali</option>
+                    </>
+                  )}
+                  {(Number(editingAttivitaTemp.azione) === 3 || !editingAttivitaTemp.azione) && (
+                    <>
+                      <option value="Promozione informazione integrata">Interventi per la promozione di un'informazione integrata</option>
+                      <option value="Promozione informazione">Attività di promozione dell'informazione</option>
+                      <option value="Coinvolgimento cittadini migranti">Attività finalizzate al coinvolgimento attivo dei cittadini migranti e delle loro associazioni</option>
+                      <option value="Promozione dello sport">Promozione dello sport</option>
+                      <option value="Qualificazione associazioni migranti">Interventi di affiancamento, formazione e qualificazione delle associazioni dei migranti</option>
+                    </>
+                  )}
+                </select>
+              </div>
+              
+              {/* Dates */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label style={{ fontSize: '12px' }}>Data Inizio</label>
+                  <input type="date" value={editingAttivitaTemp.data_inizio} onChange={(e) => setEditingAttivitaTemp({ ...editingAttivitaTemp, data_inizio: e.target.value })} className="form-input" style={{ fontSize: '12px', width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px' }} />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label style={{ fontSize: '12px' }}>Data Fine</label>
+                  <input type="date" value={editingAttivitaTemp.data_fine} onChange={(e) => setEditingAttivitaTemp({ ...editingAttivitaTemp, data_fine: e.target.value })} className="form-input" style={{ fontSize: '12px', width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px' }} />
+                </div>
+              </div>
+              
+              {/* Duration and Participants */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label style={{ fontSize: '12px' }}>Durata (ore)</label>
+                  <input type="number" min="0" value={editingAttivitaTemp.durata_ore} onChange={(e) => setEditingAttivitaTemp({ ...editingAttivitaTemp, durata_ore: e.target.value })} className="form-input" style={{ fontSize: '12px', width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px' }} />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label style={{ fontSize: '12px' }}>Partecipanti</label>
+                  <input type="number" min="0" value={editingAttivitaTemp.numero_partecipanti} onChange={(e) => setEditingAttivitaTemp({ ...editingAttivitaTemp, numero_partecipanti: e.target.value })} className="form-input" style={{ fontSize: '12px', width: '100%', padding: '8px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer - Pulsanti non scrollabili */}
+            <div style={{ padding: '20px', borderTop: '1px solid #ddd', display: 'flex', gap: '10px', flexShrink: 0 }}>
+              <button
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase
+                      .from('attività_formative')
+                      .update({
+                        tipo_attivita: editingAttivitaTemp.tipo_attivita,
+                        data_inizio: editingAttivitaTemp.data_inizio,
+                        data_fine: editingAttivitaTemp.data_fine,
+                        durata_ore: editingAttivitaTemp.durata_ore,
+                        numero_partecipanti: editingAttivitaTemp.numero_partecipanti,
+                      })
+                      .eq('id', editingAttivitaTemp.id);
+                    
+                    if (error) throw error;
+                    alert('Attività aggiornata!');
+                    caricaAttività();
+                    setRightPanelMode(null);
+                    setEditingAttivitaTemp(null);
+                  } catch (err) {
+                    alert('Errore: ' + err.message);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '12px'
+                }}
+              >
+                Salva
+              </button>
+              <button
+                onClick={() => {
+                  setRightPanelMode(null);
+                  setEditingAttivitaTemp(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '12px'
+                }}
+              >
+                Annulla
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -328,7 +674,10 @@ export default function DashboardPage({ user, onLogout }) {
               <div className="form-header">
                 <button
                   className="btn-back"
-                  onClick={() => setAzioneSelezionata(null)}
+                  onClick={() => {
+                    setAzioneSelezionata(null);
+                    setFormData({ data_inizio: '', data_fine: '', tipo_attivita: '', durata_ore: '', numero_partecipanti: '' });
+                  }}
                 >
                   ← Indietro
                 </button>
@@ -346,7 +695,7 @@ export default function DashboardPage({ user, onLogout }) {
                     className="form-input"
                     required
                   >
-                    <option value="">-- Seleziona --</option>
+                    {!formData.tipo_attivita && <option value="">-- Seleziona --</option>}
                     {azioneSelezionata === 'Azione 1' && (
                       <>
                         <option value="Attivazione e rafforzamento di reti di governance">Attivazione e rafforzamento di reti di governance e coordinamento a livello territoriale</option>
@@ -460,146 +809,7 @@ export default function DashboardPage({ user, onLogout }) {
         </div>
       )}
 
-      {showModal && selectedAttività && associazioniLoaded && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
-          }}>
-            {/* Header modale */}
-            <div style={{
-              padding: '20px',
-              borderBottom: '1px solid #ddd',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h2 style={{ margin: 0 }}>{selectedAttività.tipo_attivita}</h2>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSearchDestinatari('');
-                }}
-                style={{
-                  fontSize: '24px',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  color: '#666'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Info attività */}
-            <div style={{ padding: '15px 20px', backgroundColor: '#f5f5f5', borderBottom: '1px solid #ddd' }}>
-              <p style={{ margin: '5px 0' }}>
-                <strong>Durata:</strong> {selectedAttività.durata_ore} ore
-              </p>
-              <p style={{ margin: '5px 0' }}>
-                <strong>Partecipanti:</strong> {selectedAttività.numero_partecipanti}
-              </p>
-              <p style={{ margin: '5px 0' }}>
-                <strong>Dal:</strong> {selectedAttività.data_inizio}
-                {selectedAttività.data_fine && ` al ${selectedAttività.data_fine}`}
-              </p>
-            </div>
-
-            {/* Destinatari scrollabile */}
-            <div style={{
-              flex: 1,
-              overflow: 'auto',
-              padding: '20px'
-            }}>
-              <h3>Associa Destinatari</h3>
-              
-              {/* Ricerca destinatari */}
-              <input
-                type="text"
-                placeholder="Cerca per nome o cognome..."
-                value={searchDestinatari}
-                onChange={(e) => setSearchDestinatari(e.target.value)}
-                className="form-input"
-                style={{ width: '100%', padding: '10px', marginBottom: '15px', boxSizing: 'border-box' }}
-              />
-              
-              <div className="destinatari-list">
-                {destinatari.filter(dest =>
-                  `${dest.cognome} ${dest.nome}`.toLowerCase().includes(searchDestinatari.toLowerCase())
-                ).length === 0 ? (
-                  <p>Nessun destinatario trovato</p>
-                ) : (
-                  destinatari
-                    .filter(dest =>
-                      `${dest.cognome} ${dest.nome}`.toLowerCase().includes(searchDestinatari.toLowerCase())
-                    )
-                    .map((dest) => (
-                      <label key={dest.id} className="destinatario-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={selectedDestinatari.has(dest.id)}
-                          onChange={() => handleToggleDestinatario(dest.id)}
-                        />
-                        <span>
-                          {dest.cognome} {dest.nome}
-                          {dest.email && <small>({dest.email})</small>}
-                        </span>
-                      </label>
-                    ))
-                )}
-              </div>
-            </div>
-
-            {/* Footer modale */}
-            <div style={{
-              padding: '15px 20px',
-              borderTop: '1px solid #ddd',
-              display: 'flex',
-              gap: '10px',
-              justifyContent: 'flex-end'
-            }}>
-              <button
-                onClick={() => handleDeleteAttività(selectedAttività.id)}
-                className="btn-delete"
-              >
-                Elimina Attività
-              </button>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSearchDestinatari('');
-                }}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#667eea',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Chiudi
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modale removed - now using side-by-side layout */}
     </div>
   );
 }

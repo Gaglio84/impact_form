@@ -35,7 +35,7 @@ export default function DashboardPage({ user, onLogout }) {
     try {
       const { data, error } = await supabase
         .from('attività_formative')
-        .select('id, tipo_attivita, data_inizio, data_fine, durata_ore, numero_partecipanti, created_at')
+        .select('id, tipo_attivita, data_inizio, data_fine, durata_ore, numero_partecipanti, azione, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -46,11 +46,12 @@ export default function DashboardPage({ user, onLogout }) {
     }
   };
 
-  const caricaDestinatari = async () => {
+  const caricaDestinatari = async (azione) => {
     try {
       const { data, error } = await supabase
         .from('azioni23')
-        .select('id, nome, cognome, email')
+        .select('id, nome, cognome, email, azione')
+        .eq('azione', azione)
         .order('cognome', { ascending: true });
 
       if (error) throw error;
@@ -70,6 +71,7 @@ export default function DashboardPage({ user, onLogout }) {
         .insert([
           {
             ...formData,
+            azione: azioneSelezionata,
             user_id: user.id,
           },
         ])
@@ -80,6 +82,7 @@ export default function DashboardPage({ user, onLogout }) {
       alert('Attività creata con successo!');
       setFormData({ data_inizio: '', data_fine: '', tipo_attivita: '', durata_ore: '', numero_partecipanti: '' });
       caricaAttività();
+      setAzioneSelezionata(null);
       setTab('lista');
     } catch (err) {
       alert('Errore nella creazione: ' + err.message);
@@ -92,6 +95,9 @@ export default function DashboardPage({ user, onLogout }) {
   const handleSelectAttività = async (att) => {
     setSelectedAttività(att);
     setAssociazioniLoaded(false);
+    
+    // Carica solo i destinatari dell'azione corretta
+    await caricaDestinatari(att.azione);
 
     try {
       const { data, error } = await supabase

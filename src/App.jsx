@@ -37,8 +37,9 @@ function App() {
         {user ? (
           <>
             <Route path="/data-entry" element={<DataEntryMenu user={user} onLogout={handleLogout} />} />
-            <Route path="/selezione" element={<DestinatariManager user={user} />} />
-            <Route path="/dashboard" element={<AttivitaFormativeManager user={user} onLogout={handleLogout} />} />
+            <Route path="/selezione/:azione/destinatari" element={<DestinatariManager user={user} />} />
+            <Route path="/dashboard/:azione" element={<AttivitaFormativeManager user={user} onLogout={handleLogout} />} />
+            <Route path="/qualitativa" element={<div>Scheda Qualitativa - In desarrollo</div>} />
             <Route path="/" element={<Navigate to="/data-entry" replace />} />
             <Route path="/login" element={<Navigate to="/data-entry" replace />} />
             <Route path="*" element={<Navigate to="/data-entry" replace />} />
@@ -47,8 +48,9 @@ function App() {
           <>
             <Route path="/" element={<PublicHomepage />} />
             <Route path="/login" element={<DataEntryLogin onLoginSuccess={handleLoginSuccess} />} />
-            <Route path="/selezione" element={<Navigate to="/login" replace />} />
-            <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+            <Route path="/selezione/:azione/destinatari" element={<Navigate to="/login" replace />} />
+            <Route path="/dashboard/:azione" element={<Navigate to="/login" replace />} />
+            <Route path="/qualitativa" element={<Navigate to="/login" replace />} />
             <Route path="/data-entry" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>

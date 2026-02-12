@@ -318,7 +318,7 @@ export default function FormCittadinidiPaesiTerziAzione3({ azione, sottoazione, 
           
           <div className="form-table-group">
             <div className="form-table-row">
-              <label className="form-label">Attività di sensibilizzazione / partecipazione / socializzazione (O.2.3):</label>
+              <label className="form-label">Attività di sensibilizzazione / partecipazione / socializzazione:</label>
               <div className="form-radio-group">
                 <label><input type="radio" name="attivitaSensibilizzazione" value="si" checked={formData.attivitaSensibilizzazione === 'si'} onChange={handleChange} disabled />Si</label>
                 <label><input type="radio" name="attivitaSensibilizzazione" value="no" checked={formData.attivitaSensibilizzazione === 'no'} onChange={handleChange} disabled />No</label>
@@ -332,7 +332,7 @@ export default function FormCittadinidiPaesiTerziAzione3({ azione, sottoazione, 
 
           <div className="form-table-group">
             <div className="form-table-row">
-              <label className="form-label">Utilità supporto per integrazione (R.2.9):</label>
+              <label className="form-label">Utilità supporto per integrazione:</label>
               <select name="utilitaFormazioneIntegrazione" value={formData.utilitaFormazioneIntegrazione} onChange={handleChange} className="form-select" disabled={!isProjectEnded} title="Compilabile solo se la Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {risultati.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -340,7 +340,7 @@ export default function FormCittadinidiPaesiTerziAzione3({ azione, sottoazione, 
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Soddisfazione (R.1.3.p; R.2.15.a; R.2.17.a; R.2.8.p; R.2.9.p):</label>
+              <label className="form-label">Soddisfazione:</label>
               <select name="soddisfazione" value={formData.soddisfazione} onChange={handleChange} className="form-select" disabled={!isProjectEnded} title="Compilabile solo se la Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {risultati.map((r) => <option key={r} value={r}>{r}</option>)}

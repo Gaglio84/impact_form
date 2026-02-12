@@ -63,7 +63,7 @@
 /* Form Row - Contenitore per due colonne */
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns:  1fr 1fr;
   gap: 2em;
   margin-bottom: 2em;
 }
@@ -108,7 +108,6 @@
   font-size: 1.05em;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 48px;
-  vertical-align: middle;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   height: 48px;
   box-sizing: border-box;

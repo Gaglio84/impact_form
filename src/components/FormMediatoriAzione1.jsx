@@ -285,7 +285,7 @@ export default function FormMediatoriAzione1({ azione, sottoazione, opzione, onI
 
           <div className="form-table-group">
             <div className="form-table-row">
-              <label className="form-label">Esito positivo attività formative (R.1.1.p; R.2.12.a; R.2.11.p; R.3.7.a)</label>
+              <label className="form-label">Esito positivo attività formative</label>
               <select name="esitoAttivita" value={formData.esitoAttivita} onChange={handleChange} className="form-select" disabled={!isProjectEnded} title="Compilabile solo se la Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {esito.map((e) => <option key={e} value={e}>{e}</option>)}
@@ -293,7 +293,7 @@ export default function FormMediatoriAzione1({ azione, sottoazione, opzione, onI
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Soddisfazione (R.1.2.s; R.2.16.a; R.2.14.s; R.2.12.p)</label>
+              <label className="form-label">Soddisfazione</label>
               <select name="soddisfazione" value={formData.soddisfazione} onChange={handleChange} className="form-select" disabled={!isProjectEnded} title="Compilabile solo se la Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {esito.map((e) => <option key={e} value={e}>{e}</option>)}

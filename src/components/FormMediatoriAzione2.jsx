@@ -8,7 +8,7 @@ function Button({ children, onClick, style, type = 'button', variant = 'primary'
   return <button type={type} onClick={onClick} className={`${baseClass} ${variantClass}`} style={style}>{children}</button>;
 }
 
-export default function FormMediaoriAzione2({ azione, sottoazione, opzione, fondo, onIndietro }) {
+export default function FormMediaoriAzione2({ azione, azioneId = 2, sottoazione, opzione, fondo, onIndietro }) {
   const [formData, setFormData] = useState({
     cf: '',
     nome: '',
@@ -83,7 +83,7 @@ export default function FormMediaoriAzione2({ azione, sottoazione, opzione, fond
   const handleSubmit = async (e) => {
     e.preventDefault();
     const datiCompleti = {
-      azione: 2,
+      azione: azioneId,
       tipo: 'Mediatore',
       fondo: fondo,
       ...formData
@@ -364,7 +364,7 @@ export default function FormMediaoriAzione2({ azione, sottoazione, opzione, fond
 
           <div className="form-table-group">
             <div className="form-table-row">
-              <label className="form-label">Miglioramento competenze linguistiche (R.2.8; R.2.10.p):</label>
+              <label className="form-label">Miglioramento competenze linguistiche:</label>
               <select name="miglioramentoCompetenzeLinguistiche" value={formData.miglioramentoCompetenzeLinguistiche} onChange={handleChange} className="form-select" disabled={formData.formazioneLinquistica !== 'si' || !isProjectEnded} required={formData.formazioneLinquistica === 'si'} title="Compilabile solo se: Formazione linguistica = Si E Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {risultati.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -372,7 +372,7 @@ export default function FormMediaoriAzione2({ azione, sottoazione, opzione, fond
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Utilità supporto per integrazione (R.2.9):</label>
+              <label className="form-label">Utilità supporto per integrazione:</label>
               <select name="utilitaFormazioneIntegrazione" value={formData.utilitaFormazioneIntegrazione} onChange={handleChange} className="form-select" disabled={!isProjectEnded} title="Compilabile solo se la Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {risultati.map((r) => <option key={r} value={r}>{r}</option>)}

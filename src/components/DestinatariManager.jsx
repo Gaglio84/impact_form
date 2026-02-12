@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import '../App.css';
 import './Forms.css';
 import FormOperatori from './FormOperatori';
@@ -11,87 +11,109 @@ import FormMediatoriAzione3 from './FormMediatoriAzione3';
 
 export default function Selezione({ user }) {
   const navigate = useNavigate();
-  const [azioneSelezionata, setAzioneSelezionata] = useState(null);
+  const { azione: azioneParam } = useParams();
+  const azioneId = isNaN(parseInt(azioneParam)) ? azioneParam : parseInt(azioneParam);
+  
   const [sottoazioneSelezionata, setSottoazioneSelezionata] = useState(null);
-  const [fondoSelezionato, setFondoSelezionato] = useState(null);
   const [opzioneSelezionata, setOpzioneSelezionata] = useState(null);
 
-  const azioni = [
-    {
-      id: 1,
-      nome: 'Destinatari',
-      sottoAzioni: [
-        { id: '1A', nome: 'Azione 1', children: ['Operatori', 'Mediatori'] },
-        { id: '1B', nome: 'Azione 2', children: ['Cittadini di paesi terzi', 'Mediatori'] },
-        { id: '1C', nome: 'Azione 3', children: ['Cittadini di paesi terzi', 'Mediatori'] },
-      ],
-    },
-  ];
+  const sottoazioni = {
+    1: [
+      { id: '1A', nome: 'Azione 1', children: ['Operatori', 'Mediatori'] },
+    ],
+    2: [
+      { id: '2B', nome: 'Azione 2', children: ['Cittadini di paesi terzi', 'Mediatori'] },
+    ],
+    3: [
+      { id: '3C', nome: 'Azione 3', children: ['Cittadini di paesi terzi', 'Mediatori'] },
+    ],
+    'fes': [
+      { id: 'fes-main', nome: 'FES', children: ['Cittadini di paesi terzi', 'Mediatori'] },
+    ],
+  };
 
-  const azioneAttuale = azioni.find(a => a.id === azioneSelezionata);
-  const sottoazioneAttuale = azioneAttuale?.sottoAzioni.find(s => s.id === sottoazioneSelezionata);
+  const sottoazioniAttuale = sottoazioni[azioneId] || [];
+  const sottoazioneAttuale = sottoazioniAttuale.find(s => s.id === sottoazioneSelezionata);
 
   if (opzioneSelezionata) {
     if (opzioneSelezionata === 'Operatori') {
       return (
         <FormOperatori 
-            azione={azioneAttuale?.nome}
+          azione={`Azione ${azioneId}`}
           sottoazione={sottoazioneAttuale?.nome}
           opzione={opzioneSelezionata}
           onIndietro={() => setOpzioneSelezionata(null)}
         />
       );
     }
-    if (opzioneSelezionata === 'Mediatori' && sottoazioneAttuale?.id === '1A') {
+    if (opzioneSelezionata === 'Mediatori' && azioneId === 1) {
       return (
         <FormMediatoriAzione1 
-            azione={azioneAttuale?.nome}
+          azione={`Azione ${azioneId}`}
           sottoazione={sottoazioneAttuale?.nome}
           opzione={opzioneSelezionata}
           onIndietro={() => setOpzioneSelezionata(null)}
         />
       );
     }
-    if (opzioneSelezionata === 'Cittadini di paesi terzi' && sottoazioneAttuale?.id === '1B') {
+    if (opzioneSelezionata === 'Cittadini di paesi terzi' && azioneId === 2) {
       return (
         <FormCittadinidiPaesiTerziAzione2 
-            azione={azioneAttuale?.nome}
+          azione={`Azione ${azioneId}`}
           sottoazione={sottoazioneAttuale?.nome}
           opzione={opzioneSelezionata}
-          fondo={fondoSelezionato}
           onIndietro={() => setOpzioneSelezionata(null)}
         />
       );
     }
-    if (opzioneSelezionata === 'Mediatori' && sottoazioneAttuale?.id === '1B') {
+    if (opzioneSelezionata === 'Mediatori' && azioneId === 2) {
       return (
         <FormMediatoriAzione2 
-            azione={azioneAttuale?.nome}
+          azione={`Azione ${azioneId}`}
           sottoazione={sottoazioneAttuale?.nome}
           opzione={opzioneSelezionata}
-          fondo={fondoSelezionato}
           onIndietro={() => setOpzioneSelezionata(null)}
         />
       );
     }
-    if (opzioneSelezionata === 'Cittadini di paesi terzi' && sottoazioneAttuale?.id === '1C') {
+    if (opzioneSelezionata === 'Cittadini di paesi terzi' && azioneId === 3) {
       return (
         <FormCittadinidiPaesiTerziAzione3 
-            azione={azioneAttuale?.nome}
+          azione={`Azione ${azioneId}`}
           sottoazione={sottoazioneAttuale?.nome}
           opzione={opzioneSelezionata}
-          fondo={fondoSelezionato}
           onIndietro={() => setOpzioneSelezionata(null)}
         />
       );
     }
-    if (opzioneSelezionata === 'Mediatori' && sottoazioneAttuale?.id === '1C') {
+    if (opzioneSelezionata === 'Mediatori' && azioneId === 3) {
       return (
         <FormMediatoriAzione3 
-            azione={azioneAttuale?.nome}
+          azione={`Azione ${azioneId}`}
           sottoazione={sottoazioneAttuale?.nome}
           opzione={opzioneSelezionata}
-          fondo={fondoSelezionato}
+          onIndietro={() => setOpzioneSelezionata(null)}
+        />
+      );
+    }
+    if (opzioneSelezionata === 'Cittadini di paesi terzi' && azioneId === 'fes') {
+      return (
+        <FormCittadinidiPaesiTerziAzione2 
+          azione={`FES`}
+          azioneId={4}
+          sottoazione={sottoazioneAttuale?.nome}
+          opzione={opzioneSelezionata}
+          onIndietro={() => setOpzioneSelezionata(null)}
+        />
+      );
+    }
+    if (opzioneSelezionata === 'Mediatori' && azioneId === 'fes') {
+      return (
+        <FormMediatoriAzione2 
+          azione={`FES`}
+          azioneId={4}
+          sottoazione={sottoazioneAttuale?.nome}
+          opzione={opzioneSelezionata}
           onIndietro={() => setOpzioneSelezionata(null)}
         />
       );
@@ -102,7 +124,7 @@ export default function Selezione({ user }) {
     <div className="selezione-container">
       <div className="selezione-header">
         <div>
-          <h1>Gestione Destinatari</h1>
+          <h1>Gestione Destinatari - Azione {azioneId}</h1>
           {user && <p>Loggato come: <strong>{user.nome_organizzazione}</strong></p>}
         </div>
         <button onClick={() => navigate('/data-entry')} className="btn-back-menu">
@@ -111,93 +133,25 @@ export default function Selezione({ user }) {
       </div>
 
       <div className="selezione-content">
-        {!azioneSelezionata && (
+        {!sottoazioneSelezionata && (
           <div className="selection-step">
-            <h2>Seleziona l'Azione</h2>
+            <h2>Seleziona il Tipo di Destinatario per Azione {azioneId}</h2>
             <div className="options-grid">
-              {azioni.map((azione) => (
-                <div
-                  key={azione.id}
-                  className="option-card"
-                  onClick={() => {
-                    setAzioneSelezionata(azione.id);
-                    setSottoazioneSelezionata(null);
-                  }}
-                >
-                  <h3>{azione.nome}</h3>
-                  <p>{azione.sottoAzioni.length} azioni disponibili</p>
-                  <button>Seleziona →</button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {azioneSelezionata && !sottoazioneSelezionata && (
-          <div className="selection-step">
-            <h2>Seleziona l'Azione Specifica</h2>
-            <div className="options-grid">
-              {azioneAttuale?.sottoAzioni.map((sotto) => (
-                <div
-                  key={sotto.id}
-                  className="option-card"
-                  onClick={() => setSottoazioneSelezionata(sotto.id)}
-                >
-                  <h3>{sotto.nome}</h3>
-                  <p>{sotto.children.length} opzioni disponibili</p>
-                  <button>Seleziona →</button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setAzioneSelezionata(null)} className="btn-back">
-              ← Indietro
-            </button>
-          </div>
-        )}
-
-        {sottoazioneAttuale && azioneAttuale?.id === 1 && sottoazioneAttuale.id === '1B' && !fondoSelezionato && (
-          <div className="selection-step">
-            <h2>Seleziona il Fondo per {sottoazioneAttuale.nome}</h2>
-            <div className="options-grid">
-              <div className="option-card" onClick={() => setFondoSelezionato('FAMI')}>
-                <h3>FAMI</h3>
-                <p>Fondo Asilo Migrazione e Integrazione</p>
-                <button>Seleziona →</button>
-              </div>
-              <div className="option-card" onClick={() => setFondoSelezionato('FESR')}>
-                <h3>FESR</h3>
-                <p>Fondo Europeo Sviluppo Regionale</p>
-                <button>Seleziona →</button>
-              </div>
-            </div>
-            <button onClick={() => setSottoazioneSelezionata(null)} className="btn-back">
-              ← Indietro
-            </button>
-          </div>
-        )}
-
-        {sottoazioneAttuale && (azioneAttuale?.id !== 1 || sottoazioneAttuale.id !== '1B' || fondoSelezionato) && (
-          <div className="selection-step">
-            <h2>Seleziona il Tipo di Destinatario</h2>
-            <div className="options-grid">
-              {sottoazioneAttuale.children.map((child) => (
+              {sottoazioni[azioneId]?.[0]?.children.map((child) => (
                 <div
                   key={child}
                   className="option-card"
-                  onClick={() => setOpzioneSelezionata(child)}
+                  onClick={() => {
+                    setSottoazioneSelezionata(sottoazioni[azioneId][0].id);
+                    setOpzioneSelezionata(child);
+                  }}
                 >
                   <h3>{child}</h3>
                   <button>Accedi →</button>
                 </div>
               ))}
             </div>
-            <button
-              onClick={() => {
-                setSottoazioneSelezionata(null);
-                setFondoSelezionato(null);
-              }}
-              className="btn-back"
-            >
+            <button onClick={() => navigate('/data-entry')} className="btn-back">
               ← Indietro
             </button>
           </div>

@@ -8,7 +8,7 @@ function Button({ children, onClick, style, type = 'button', variant = 'primary'
   return <button type={type} onClick={onClick} className={`${baseClass} ${variantClass}`} style={style}>{children}</button>;
 }
 
-export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, opzione, fondo, onIndietro }) {
+export default function FormCittadinidiPaesiTerziAzione2({ azione, azioneId = 2, sottoazione, opzione, fondo, onIndietro }) {
   const [formData, setFormData] = useState({
     cf: '',
     nome: '',
@@ -30,7 +30,6 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
     formazioneLinquistica: '',
     orientamentoProfessionale: '',
     educazioneCivica: '',
-    supportoInserimentoScolastico: '',
     supportoFormazioneUniversitaria: '',
     orientamentoFormazione: 'no',
     serviziCaporalato: 'no',
@@ -83,7 +82,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const datiCompleti = {
-      azione: 2,
+      azione: azioneId,
       tipo: 'Cittadini',
       fondo: fondo,
       ...formData
@@ -121,7 +120,6 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
           formazioneLinquistica: '',
           orientamentoProfessionale: '',
           educazioneCivica: '',
-          supportoInserimentoScolastico: '',
           supportoFormazioneUniversitaria: '',
           orientamentoFormazione: 'no',
           serviziCaporalato: 'no',
@@ -318,7 +316,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
           
           <div className="form-table-group">
             <div className="form-table-row">
-              <label className="form-label">Formazione linguistica (O.2.3; O.2.3.1; O.2.28.p):</label>
+              <label className="form-label">Formazione linguistica:</label>
               <div className="form-radio-group">
                 <label><input type="radio" name="formazioneLinquistica" value="si" checked={formData.formazioneLinquistica === 'si'} onChange={handleChange} />Si</label>
                 <label><input type="radio" name="formazioneLinquistica" value="no" checked={formData.formazioneLinquistica === 'no'} onChange={handleChange} />No</label>
@@ -326,7 +324,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Orientamento professionale personalizzato e sostegno all'occupabilità (O.2.3; O.2.3.3):</label>
+              <label className="form-label">Orientamento professionale personalizzato e sostegno all'occupabilità:</label>
               <div className="form-radio-group">
                 <label><input type="radio" name="orientamentoProfessionale" value="si" checked={formData.orientamentoProfessionale === 'si'} onChange={handleChange} />Si</label>
                 <label><input type="radio" name="orientamentoProfessionale" value="no" checked={formData.orientamentoProfessionale === 'no'} onChange={handleChange} />No</label>
@@ -334,7 +332,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Educazione civica (O.2.3; O.2.3.2):</label>
+              <label className="form-label">Educazione civica:</label>
               <div className="form-radio-group">
                 <label><input type="radio" name="educazioneCivica" value="si" checked={formData.educazioneCivica === 'si'} onChange={handleChange} />Si</label>
                 <label><input type="radio" name="educazioneCivica" value="no" checked={formData.educazioneCivica === 'no'} onChange={handleChange} />No</label>
@@ -342,15 +340,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Supporto all'inserimento scolastico (O.2.3; O.2.3.1; O.2.3.2; O.2.29.p):</label>
-              <div className="form-radio-group">
-                <label><input type="radio" name="supportoInserimentoScolastico" value="si" checked={formData.supportoInserimentoScolastico === 'si'} onChange={handleChange} />Si</label>
-                <label><input type="radio" name="supportoInserimentoScolastico" value="no" checked={formData.supportoInserimentoScolastico === 'no'} onChange={handleChange} />No</label>
-              </div>
-            </div>
-
-            <div className="form-table-row">
-              <label className="form-label">Supporto per l'accesso alla formazione universitaria e riconoscimento dei titoli (O.2.3):</label>
+              <label className="form-label">Supporto per l'accesso alla formazione universitaria e riconoscimento dei titoli:</label>
               <div className="form-radio-group">
                 <label><input type="radio" name="supportoFormazioneUniversitaria" value="si" checked={formData.supportoFormazioneUniversitaria === 'si'} onChange={handleChange} />Si</label>
                 <label><input type="radio" name="supportoFormazioneUniversitaria" value="no" checked={formData.supportoFormazioneUniversitaria === 'no'} onChange={handleChange} />No</label>
@@ -364,7 +354,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
 
           <div className="form-table-group">
             <div className="form-table-row">
-              <label className="form-label">Miglioramento competenze linguistiche (R.2.8; R.2.10.p):</label>
+              <label className="form-label">Miglioramento competenze linguistiche:</label>
               <select name="miglioramentoCompetenzeLinguistiche" value={formData.miglioramentoCompetenzeLinguistiche} onChange={handleChange} className="form-select" disabled={formData.formazioneLinquistica !== 'si' || !isProjectEnded} required={formData.formazioneLinquistica === 'si'} title="Compilabile solo se: Formazione linguistica = Si E Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {risultati.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -372,7 +362,7 @@ export default function FormCittadinidiPaesiTerziAzione2({ azione, sottoazione, 
             </div>
 
             <div className="form-table-row">
-              <label className="form-label">Utilità supporto per integrazione (R.2.9):</label>
+              <label className="form-label">Utilità supporto per integrazione:</label>
               <select name="utilitaFormazioneIntegrazione" value={formData.utilitaFormazioneIntegrazione} onChange={handleChange} className="form-select" disabled={!isProjectEnded} title="Compilabile solo se la Data fine supporto è nel passato">
                 <option value="">-- Seleziona --</option>
                 {risultati.map((r) => <option key={r} value={r}>{r}</option>)}
